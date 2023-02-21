@@ -29,8 +29,8 @@ export class AuthService {
       .post<AuthResponseData>(
         `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${environment.firebaseAPIkey}`,
         {
-          email,
-          password,
+          email: email,
+          password: password,
           returnSecureToken: true,
         }
       )
@@ -50,8 +50,12 @@ export class AuthService {
   login(email: string, password: string) {
     return this.http
       .post<AuthResponseData>(
-        `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${environment.firebaseAPIkey}`,
-        { email, password, returnSecureToken: true }
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${environment.firebaseAPIkey}`,
+        {
+          email: email,
+          password: password,
+          returnSecureToken: true,
+        }
       )
       .pipe(
         catchError(this.handleError),
@@ -76,6 +80,7 @@ export class AuthService {
     if (!userData) {
       return;
     }
+
     const loadedUser = new User(
       userData.email,
       userData.id,
@@ -122,22 +127,19 @@ export class AuthService {
   }
 
   private handleError(errorRes: HttpErrorResponse) {
-    let errorMessage = 'An unknown error accurred!';
+    let errorMessage = 'An unknown error occurred!';
     if (!errorRes.error || !errorRes.error.error) {
       return throwError(errorMessage);
     }
     switch (errorRes.error.error.message) {
       case 'EMAIL_EXISTS':
-        errorMessage = 'This email exists already!';
+        errorMessage = 'This email exists already';
         break;
       case 'EMAIL_NOT_FOUND':
         errorMessage = 'This email does not exist.';
         break;
       case 'INVALID_PASSWORD':
         errorMessage = 'This password is not correct.';
-        break;
-      case 'USER_DISABLED':
-        errorMessage = 'This user was disabled.';
         break;
     }
     return throwError(errorMessage);
